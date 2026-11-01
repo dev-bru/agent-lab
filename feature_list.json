@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "project": "agent-lab",
+  "_rules": "Every feature starts failing. Status changes ONLY via scripts/verify_feature.py after tests run.",
+  "features": [
+    {
+      "id": "F-001",
+      "title": "Project setup, settings file, dependency record",
+      "req_ids": [
+        "REQ-001",
+        "REQ-002",
+        "REQ-054"
+      ],
+      "acceptance": [
+        "uv sync --locked succeeds; runtime deps pinned with ==; tzdata present",
+        "agent-lab --help lists chat and model",
+        "settings load defaults from agent-lab.example.toml; AGENT_LAB_PORT overrides the port",
+        "no user or drive paths in src, lessons, tests",
+        "every pyproject dependency is listed in docs/DEPENDENCIES.md"
+      ],
+      "test_command": "uv run pytest tests/test_settings.py tests/test_project.py",
+      "status": "passing",
+      "last_verified": 1793354907,
+      "baseline_tests": 13
+    },
+    {
+      "id": "F-002",
+      "title": "agent-lab model start|stop|status",
+      "req_ids": [
+        "REQ-003"
+      ],
+      "acceptance": [
+        "built llama-server command line matches the spec for the example settings",
+        "non-local host refused",
+        "missing llama_server or model path: exit 1 naming the setting and path",
+        "already running prints already running; port in use by another process: exit 1 naming the port",
+        "stale pid file: status prints stopped and removes it; stop when stopped exits 0"
+      ],
+      "test_command": "uv run pytest tests/test_model_server.py",
+      "status": "passing",
+      "last_verified": 1793374763,
+      "baseline_tests": 23
+    },
+    {
+      "id": "F-003",
+      "title": "Model client on LiteLLM, no-network guard, scripted fake model",
+      "req_ids": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-050"
+      ],
+      "acceptance": [
+        "chat() passes openai/<name>, api_base, placeholder key and timeout to litellm.completion",
+        "/no_think added only when thinking=False",
+        "connection refused, timeout and HTTP 400 become ModelServerDown, ModelTimeout, ModelError",
+        "socket guard in conftest blocks non-loopback connects; importing agent_lab.model passes under it",
+        "FakeModel and FakeChatModel replay a JSON script and record requests",
+        "default pytest run executes 0 live tests"
+      ],
+      "test_command": "uv run pytest tests/test_model.py tests/test_fakes.py tests/test_network_guard.py",
+      "status": "passing",
+      "last_verified": 1793375933,
+      "baseline_tests": 17
+    },
+    {
+      "id": "F-004",
+      "title": "Lesson 01: model call",
+      "req_ids": [
+        "REQ-010",
+        "REQ-052"
+      ],
+      "acceptance": [
+        "lessons/01_model_call.py --fake exits 0 and prints agent> with the fake reply",
+        "module docstrings present in src and lessons"
+      ],
+      "test_command": "uv run pytest tests/test_lesson_01.py tests/test_docstrings.py",
+      "status": "passing",
+      "last_verified": 1793376872,
+      "baseline_tests": 6
+    },
+    {
+      "id": "F-005",
+      "title": "MCP server: math, units, date and time tools",
+      "req_ids": [
+        "REQ-020",
+        "REQ-022"
+      ],
+      "acceptance": [
+        "multiply(17, 23) == 391; 1 mi -> 1.609344 km",
+        "bad units and km->kg return error results naming valid units",
+        "days_between('2026-10-29', '2026-12-31') == 63 and reversed == -63; now('Asia/Kolkata') ends +05:30",
+        "bad date or zone gives an error result"
+      ],
+      "test_command": "uv run pytest tests/test_tools_math_time.py",
+      "status": "passing",
+      "last_verified": 1793378986,
+      "baseline_tests": 10
+    },
+    {
+      "id": "F-006",
+      "title": "MCP server: sandboxed notes tools",
+      "req_ids": [
+        "REQ-021"
+      ],
+      "acceptance": [
+        "write/read/list round trip incl. non-ASCII; second write says updated",
+        "../x, a/b, C:x, con, Com1, empty and 65-char names rejected; parent folder unchanged",
+        "10,000 chars accepted, 10,001 rejected; junction escape rejected",
+        "missing note returns an error result; missing folder lists empty"
+      ],
+      "test_command": "uv run pytest tests/test_tools_notes.py",
+      "status": "passing",
+      "last_verified": 1793380173,
+      "baseline_tests": 10
+    },
+    {
+      "id": "F-007",
+      "title": "MCP server: docs search",
+      "req_ids": [
+        "REQ-023"
+      ],
+      "acceptance": [
+        "search_docs ranks the fixture doc first; absent word returns []",
+        "empty query or limit outside 1..10 gives an error result"
+      ],
+      "test_command": "uv run pytest tests/test_tools_docs.py",
+      "status": "passing",
+      "last_verified": 1793381350,
+      "baseline_tests": 11
+    },
+    {
+      "id": "F-008",
+      "title": "MCP protocol test and lesson 05 (MCP client over stdio)",
+      "req_ids": [
+        "REQ-024",
+        "REQ-014"
+      ],
+      "acceptance": [
+        "in-memory client lists exactly the 9 tools and calls each once",
+        "lessons/05_mcp_client.py exits 0 over stdio and lists all tools"
+      ],
+      "test_command": "uv run pytest tests/test_mcp_protocol.py tests/test_lesson_05.py",
+      "status": "passing",
+      "last_verified": 1793381969,
+      "baseline_tests": 5
+    },
+    {
+      "id": "F-009",
+      "title": "Tool bridge and lesson 02: tool call",
+      "req_ids": [
+        "REQ-011"
+      ],
+      "acceptance": [
+        "MCP tool converts to OpenAI tool format; check_args finds missing, unknown and wrong-type args",
+        "lesson 02 --fake prints [tool: multiply] and 391",
+        "second request has a tool message with the first call id"
+      ],
+      "test_command": "uv run pytest tests/test_tools_schema.py tests/test_lesson_02.py",
+      "status": "passing",
+      "last_verified": 1793382757,
+      "baseline_tests": 14
+    },
+    {
+      "id": "F-010",
+      "title": "Lesson 03: structured output with one retry",
+      "req_ids": [
+        "REQ-012"
+      ],
+      "acceptance": [
+        "fake [bad, good] exits 0 with a card after 2 calls",
+        "fake [bad, bad] exits 1 with the error after 2 calls"
+      ],
+      "test_command": "uv run pytest tests/test_lesson_03.py",
+      "status": "passing",
+      "last_verified": 1793383486,
+      "baseline_tests": 7
+    },
+    {
+      "id": "F-011",
+      "title": "MCP client, hand-written agent loop and run trace",
+      "req_ids": [
+        "REQ-030",
+        "REQ-041"
+      ],
+      "acceptance": [
+        "McpTools opens a stdio session, lists 9 specs, calls a tool, and ends the child on close",
+        "canonical task answers after 3 model calls with the defined tool sequence",
+        "wrong argument name, bad JSON arguments and unknown tool give error tool messages, no exception",
+        "always-tool model stops after max_steps model calls with LIMIT_MESSAGE",
+        "trace lines parse, have t and kind, t never decreases; same-millisecond runs get different files"
+      ],
+      "test_command": "uv run pytest tests/test_mcp_client.py tests/test_agent_hand.py tests/test_trace.py",
+      "status": "passing",
+      "last_verified": 1793385059,
+      "baseline_tests": 14
+    },
+    {
+      "id": "F-012",
+      "title": "Lesson 04: agent loop",
+      "req_ids": [
+        "REQ-013"
+      ],
+      "acceptance": [
+        "lessons/04_agent_loop.py --fake prints 2 tool steps and the final answer"
+      ],
+      "test_command": "uv run pytest tests/test_lesson_04.py",
+      "status": "passing",
+      "last_verified": 1793385697,
+      "baseline_tests": 4
+    },
+    {
+      "id": "F-013",
+      "title": "LangGraph agent",
+      "req_ids": [
+        "REQ-031",
+        "REQ-041"
+      ],
+      "acceptance": [
+        "same fake script gives the same tool sequence and final text as the hand agent",
+        "always-tool model stops with the same limit message",
+        "hand and graph traces have the same kind sequence"
+      ],
+      "test_command": "uv run pytest tests/test_agent_graph.py",
+      "status": "passing",
+      "last_verified": 1793441790,
+      "baseline_tests": 10
+    },
+    {
+      "id": "F-014",
+      "title": "Lesson 06: LangGraph agent",
+      "req_ids": [
+        "REQ-015"
+      ],
+      "acceptance": [
+        "lessons/06_langgraph_agent.py --fake prints model, tools, model, tools, model updates and the answer"
+      ],
+      "test_command": "uv run pytest tests/test_lesson_06.py",
+      "status": "passing",
+      "last_verified": 1793442796,
+      "baseline_tests": 4
+    },
+    {
+      "id": "F-015",
+      "title": "CLI chat with both engines",
+      "req_ids": [
+        "REQ-040"
+      ],
+      "acceptance": [
+        "two piped questions and exit give two answers, exit 0",
+        "no model server: clear message, exit 2, no traceback"
+      ],
+      "test_command": "uv run pytest tests/test_cli.py",
+      "status": "passing",
+      "last_verified": 1793447120,
+      "baseline_tests": 13
+    },
+    {
+      "id": "F-016",
+      "title": "HTML trace viewer",
+      "req_ids": [
+        "REQ-042"
+      ],
+      "acceptance": [
+        "loads a fixture trace, shows the right event count and the final text",
+        "zero network requests besides the page"
+      ],
+      "test_command": "uv run pytest tests/test_viewer.py",
+      "status": "passing",
+      "last_verified": 1793448429,
+      "baseline_tests": 9
+    },
+    {
+      "id": "F-017",
+      "title": "Local-only check and README",
+      "req_ids": [
+        "REQ-053",
+        "REQ-055"
+      ],
+      "acceptance": [
+        "only localhost URLs in src and lessons",
+        "README names every lesson and links its diagram flow"
+      ],
+      "test_command": "uv run pytest tests/test_local_only.py tests/test_readme.py",
+      "status": "passing",
+      "last_verified": 1793448992,
+      "baseline_tests": 5
+    },
+    {
+      "id": "F-018",
+      "title": "MCP docs resource and explain_tool prompt (Should)",
+      "req_ids": [
+        "REQ-025"
+      ],
+      "acceptance": [
+        "docs://mcp-basics returns the fixture text; missing and traversal names give errors",
+        "explain_tool('multiply') contains the tool description"
+      ],
+      "test_command": "uv run pytest tests/test_tools_docs_resource.py",
+      "status": "passing",
+      "last_verified": 1793452475,
+      "baseline_tests": 3
+    },
+    {
+      "id": "F-019",
+      "title": "Live smoke tests against llama-server",
+      "req_ids": [
+        "REQ-051",
+        "REQ-054",
+        "REQ-003"
+      ],
+      "acceptance": [
+        "lessons 01-06 exit 0 on the live model, each under 30 s (1 of up to 3 attempts)",
+        "hand and graph agents give the canonical tool sequence live",
+        "model start, status, stop, status works live",
+        "configured model SHA-256 equals DEPENDENCIES.md"
+      ],
+      "test_command": "uv run pytest -m live -rs",
+      "status": "passing",
+      "last_verified": 1793451028,
+      "baseline_tests": 11
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "project": "agent-lab",
+  "title": "Agent Lab",
+  "stage": "gate",
+  "gate": "approved",
+  "stages": [
+    {
+      "id": "brainstorm",
+      "status": "done",
+      "summary": "2 rounds: LiteLLM by hand then LangGraph; Qwen3 1.7B on llama.cpp; FastMCP tool catalog; lessons + app; fake-model tests"
+    },
+    {
+      "id": "research",
+      "status": "done",
+      "summary": "fastmcp 4.1.4, litellm 1.106.6, langgraph 1.2.18, langchain-mcp-adapters 0.3.2, langchain-litellm 0.11.2; llama-server tool calls MEASURED"
+    },
+    {
+      "id": "diagrams",
+      "status": "done",
+      "summary": "Interactive diagram: 6 flows (model call, tool call, structured output, agent loop, MCP stdio, LangGraph), modes by hand / LangGraph"
+    },
+    {
+      "id": "documents",
+      "status": "done",
+      "summary": "PRODUCT_SPEC, REQUIREMENTS (REQ-001..055), ARCHITECTURE, DECISIONS (D-001..009, A-1..4)"
+    },
+    {
+      "id": "plan",
+      "status": "done",
+      "summary": "19 features F-001..F-019 (all failing) in 4 phases; progress, AGENTS, CLAUDE"
+    },
+    {
+      "id": "audit",
+      "status": "done",
+      "summary": "spec-auditor 2 rounds: 17 + 6 items fixed (REQ-005, REQ-025, F-018, F-019 added)"
+    },
+    {
+      "id": "gate",
+      "status": "done",
+      "summary": "approved by the human 2026-10-29; assumptions A-1..A-6 confirmed"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "brainstorm",
+      "stage": "brainstorm",
+      "path": "plan/01-brainstorm.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793289065.981292
+    },
+    {
+      "id": "research",
+      "stage": "research",
+      "path": "plan/02-research.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793289127.999317
+    },
+    {
+      "id": "architecture",
+      "stage": "diagrams",
+      "path": "plan/03-architecture.html",
+      "kind": "html",
+      "status": "ready",
+      "updated": 1793295197.643426
+    },
+    {
+      "id": "architecture-md",
+      "stage": "diagrams",
+      "path": "plan/03-architecture.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295197.643426
+    },
+    {
+      "id": "product-spec",
+      "stage": "documents",
+      "path": "docs/PRODUCT_SPEC.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "requirements",
+      "stage": "documents",
+      "path": "docs/REQUIREMENTS.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "architecture-doc",
+      "stage": "documents",
+      "path": "docs/ARCHITECTURE.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "decisions",
+      "stage": "documents",
+      "path": "docs/DECISIONS.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "phase-1",
+      "stage": "plan",
+      "path": "docs/exec-plans/phase-1.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "phase-2",
+      "stage": "plan",
+      "path": "docs/exec-plans/phase-2.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "phase-3",
+      "stage": "plan",
+      "path": "docs/exec-plans/phase-3.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "phase-4",
+      "stage": "plan",
+      "path": "docs/exec-plans/phase-4.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295421.063004
+    },
+    {
+      "id": "gate",
+      "stage": "gate",
+      "path": "plan/04-gate.md",
+      "kind": "markdown",
+      "status": "ready",
+      "updated": 1793295764.8193145
+    }
+  ],
+  "questions": [],
+  "assumptions": [
+    "A-1 Won't in v1: cloud models/API keys, internet tools, web chat UI, vector DB/long-term memory",
+    "A-2 Viewer tests use Python Playwright with the installed Chrome (no browser download)",
+    "A-3 Model file stays in the shared benchmark models folder; settings point to it",
+    "A-4 Max 6 model calls per question",
+    "A-5 Live tests pass if 1 of up to 3 attempts passes",
+    "A-6 Two chats at once allowed; notes last-write-wins"
+  ],
+  "updated": 1793296007.3750508
+}

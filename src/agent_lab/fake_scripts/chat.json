@@ -1,0 +1,6 @@
+[
+  {"tool_calls": [{"name": "multiply", "arguments": "{\"a\": 17, \"b\": 23}"}]},
+  {"tool_calls": [{"name": "write_note", "arguments": "{\"name\": \"result\", \"text\": \"17 x 23 = 391\"}"}]},
+  {"text": "The answer is 391. I saved it as the note \"result\"."},
+  {"text": "You are welcome."}
+]

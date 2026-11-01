@@ -1,0 +1,20 @@
+# Set the real path to llama-server in your own agent-lab.toml.
+llama_server = "llama-server.exe"
+# Set the real model path in your own agent-lab.toml.
+model = "models/Qwen3-1.7B-Q8_0.gguf"
+# Use the local computer for the model server.
+host = "127.0.0.1"
+# Use this port for the model server.
+port = 8090
+# Use this name when calling the model.
+model_name = "qwen3-1.7b"
+# Stop the agent after this many steps.
+max_steps = 6
+# Wait this many seconds for a model reply.
+timeout_s = 120
+# Save notes in this folder.
+notes_dir = "sandbox/notes"
+# Read documents from this folder.
+docs_dir = "docs_corpus"
+# Save run records in this folder.
+runs_dir = "runs"

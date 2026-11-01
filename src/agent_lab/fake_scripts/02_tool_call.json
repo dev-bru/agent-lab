@@ -1,0 +1,1 @@
+[{"tool_calls": [{"name": "multiply", "arguments": "{\"a\": 17, \"b\": 23}"}]}, {"text": "17 times 23 is 391."}]

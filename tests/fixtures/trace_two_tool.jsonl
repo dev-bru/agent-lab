@@ -1,0 +1,12 @@
+{"t": 0.016, "kind": "user", "text": "What is 17 times 23? Save the answer as a note called result."}
+{"t": 0.016, "kind": "model_request", "step": 1, "messages": 2}
+{"t": 0.016, "kind": "model_reply", "text": "", "tool_calls": [{"id": "call_1", "name": "multiply", "arguments": "{\"a\": 17, \"b\": 23}"}]}
+{"t": 0.016, "kind": "tool_call", "id": "call_1", "name": "multiply", "arguments": "{\"a\": 17, \"b\": 23}"}
+{"t": 0.375, "kind": "tool_result", "id": "call_1", "name": "multiply", "content": "391.0", "is_error": false}
+{"t": 0.375, "kind": "model_request", "step": 2, "messages": 4}
+{"t": 0.375, "kind": "model_reply", "text": "", "tool_calls": [{"id": "call_2", "name": "write_note", "arguments": "{\"name\": \"result\", \"text\": \"17 x 23 = 391\"}"}]}
+{"t": 0.375, "kind": "tool_call", "id": "call_2", "name": "write_note", "arguments": "{\"name\": \"result\", \"text\": \"17 x 23 = 391\"}"}
+{"t": 0.391, "kind": "tool_result", "id": "call_2", "name": "write_note", "content": "saved note 'result'", "is_error": false}
+{"t": 0.391, "kind": "model_request", "step": 3, "messages": 6}
+{"t": 0.391, "kind": "model_reply", "text": "The answer is 391. I saved it as the note \"result\".", "tool_calls": []}
+{"t": 0.391, "kind": "final", "text": "The answer is 391. I saved it as the note \"result\"."}

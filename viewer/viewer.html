@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Lab trace viewer</title>
+  <style>
+    :root, :root[data-theme="light"] {
+      color-scheme: light;
+      --page: #f4f6f8; --panel: #fff; --ink: #18212d; --muted: #415166;
+      --line: #c3cbd4; --active: #e4effb; --focus: #075da8;
+      --toggle: #075da8; --toggle-ink: #fff;
+      --user: #316d9d; --request: #73609b; --reply: #575eae;
+      --call: #93622d; --result: #39775b; --problem: #a43d37; --limit: #8c442b; --answer: #24754d;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #151b23; --panel: #202a35; --ink: #f0f3f7; --muted: #c7d1dc;
+      --line: #526173; --active: #344a63; --focus: #82bfff;
+      --toggle: #82bfff; --toggle-ink: #151b23;
+      --user: #82bfff; --request: #c4a8fa; --reply: #a9b5ff;
+      --call: #f0c58e; --result: #8bd5ae; --problem: #ffaaa2; --limit: #ffbc93; --answer: #91dfae;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.45 system-ui, sans-serif; }
+    main { max-width: 1500px; margin: auto; padding: 20px; }
+    header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+    h1 { margin: 0 auto 0 0; font-size: 1.45rem; line-height: 1.25; }
+    label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 600; }
+    input[type="file"] { max-width: min(100%, 260px); font: inherit; }
+    button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    button:focus-visible, input:focus-visible, pre:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+    #theme, nav button { padding: 7px 12px; }
+    #theme[aria-pressed="true"] { background: var(--toggle); color: var(--toggle-ink); border-color: var(--toggle); }
+    #summary { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 18px 0 12px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow-wrap: anywhere; }
+    #count { font-weight: 700; white-space: nowrap; }
+    #problems { margin: 0 0 12px; color: var(--problem); font-weight: 600; }
+    #problems[hidden] { display: none; }
+    .panes { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 12px; align-items: start; }
+    .pane { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+    .list-pane { min-height: 240px; }
+    #events { max-height: calc(100vh - 185px); margin: 0; padding: 0; list-style: none; overflow: auto; }
+    #events li { border-left: 5px solid var(--line); border-bottom: 1px solid var(--line); }
+    #events li:last-child { border-bottom: 0; }
+    #events li.user { border-left-color: var(--user); }
+    #events li.model_request { border-left-color: var(--request); }
+    #events li.model_reply { border-left-color: var(--reply); }
+    #events li.tool_call { border-left-color: var(--call); }
+    #events li.tool_result { border-left-color: var(--result); }
+    #events li.error { border-left-color: var(--problem); }
+    #events li.limit { border-left-color: var(--limit); }
+    #events li.final { border-left-color: var(--answer); }
+    #events li button { display: block; width: 100%; padding: 10px 12px; text-align: left; border: 0; border-radius: 0; background: transparent; }
+    #events li button[aria-current="true"] { background: var(--active); }
+    .event-head { display: flex; align-items: baseline; gap: 10px; font-weight: 650; }
+    .event-head time { margin-left: auto; color: var(--muted); font-weight: 400; white-space: nowrap; }
+    .event-summary { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+    #events li.error .event-head { color: var(--problem); }
+    #events li.limit .event-head { color: var(--limit); }
+    #events li.final .event-head { color: var(--answer); }
+    .empty { margin: 0; padding: 18px; color: var(--muted); }
+    .detail-pane { min-width: 0; }
+    nav { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+    #position { min-width: 5ch; text-align: center; font-variant-numeric: tabular-nums; }
+    #detail { min-height: 190px; margin: 0; padding: 16px; color: var(--ink); font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    @media (min-width: 701px) {
+      .detail-pane { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+    }
+    @media (max-width: 700px) {
+      main { padding: 12px; }
+      .panes { grid-template-columns: minmax(0, 1fr); }
+      .list-pane { min-height: 0; }
+      #events { max-height: 45vh; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Agent Lab trace viewer</h1>
+      <label>Open a trace (.jsonl) <input id="file" type="file" accept=".jsonl"></label>
+      <button id="theme" type="button" aria-pressed="false">Dark theme</button>
+    </header>
+    <section id="summary" aria-live="polite"><span id="count">0 events, 0.000 s</span><span id="answer">No final answer</span></section>
+    <p id="problems" role="alert" hidden></p>
+    <div class="panes">
+      <section class="pane list-pane" aria-label="Trace events">
+        <ul id="events" aria-label="Events"></ul>
+        <p id="empty-events" class="empty">Open a trace file from the runs folder.</p>
+      </section>
+      <section class="pane detail-pane" aria-label="Event detail">
+        <nav aria-label="Event steps">
+          <button id="previous" type="button" disabled>Previous</button>
+          <span id="position" aria-live="polite">0 / 0</span>
+          <button id="next" type="button" disabled>Next</button>
+        </nav>
+        <pre id="detail" tabindex="0" aria-label="Selected event">Open a trace file from the runs folder.</pre>
+      </section>
+    </div>
+  </main>
+  <script>
+    const fileInput = document.querySelector('#file');
+    const list = document.querySelector('#events');
+    const detail = document.querySelector('#detail');
+    const previous = document.querySelector('#previous');
+    const next = document.querySelector('#next');
+    const position = document.querySelector('#position');
+    const theme = document.querySelector('#theme');
+    let records = [];
+    let selected = -1;
+
+    // Show the short text that helps a learner find an event.
+    function summary(record) {
+      const value = (field) => record[field] == null ? '' : String(record[field]);
+      switch (record.kind) {
+        case 'user': case 'final': return value('text');
+        case 'model_reply': return record.text ? value('text') : 'calls: ' +
+          (Array.isArray(record.tool_calls) ? record.tool_calls.map(call => call?.name ?? '').join(', ') : '');
+        case 'tool_call': case 'tool_result': return value('name');
+        case 'error': return value('message');
+        case 'model_request': return record.step == null ? '' : 'step ' + value('step');
+        case 'limit': return record.steps == null ? '' : 'steps ' + value('steps');
+        default: return '';
+      }
+    }
+
+    // Keep the buttons and detail on the same event.
+    function select(index) {
+      if (index < 0 || index >= records.length) return;
+      selected = index;
+      list.querySelectorAll('button').forEach((button, number) => {
+        if (number === index) button.setAttribute('aria-current', 'true');
+        else button.removeAttribute('aria-current');
+      });
+      detail.textContent = JSON.stringify(records[index], null, 2);
+      position.textContent = `${index + 1} / ${records.length}`;
+      previous.disabled = index === 0;
+      next.disabled = index === records.length - 1;
+      const button = list.querySelectorAll('button')[index];
+      button.focus();
+      button.scrollIntoView({block: 'nearest'});
+    }
+
+    // Read each line on its own so one bad line does not hide the trace.
+    // Clear the picker so choosing the same file starts again.
+    fileInput.addEventListener('click', () => { fileInput.value = ''; });
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const lines = (await file.text()).replace(/^\uFEFF/, '').split(/\r?\n/);
+      records = [];
+      let bad = 0;
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const record = JSON.parse(line);
+          if (record === null || typeof record !== 'object' || Array.isArray(record) || typeof record.kind !== 'string') throw new Error('Invalid event');
+          records.push(record);
+        } catch (_) { bad += 1; }
+      }
+      list.replaceChildren();
+      records.forEach((record, index) => {
+        const item = document.createElement('li');
+        item.className = record.kind;
+        const button = document.createElement('button');
+        button.type = 'button';
+        const head = document.createElement('span');
+        head.className = 'event-head';
+        const name = document.createElement('span');
+        name.textContent = `${index + 1}  ${record.kind}`;
+        const time = document.createElement('time');
+        time.textContent = `${Number.isFinite(Number(record.t)) ? Number(record.t).toFixed(3) : '0.000'} s`;
+        head.append(name, time);
+        const short = document.createElement('span');
+        short.className = 'event-summary';
+        short.textContent = summary(record);
+        button.append(head, short);
+        button.addEventListener('click', () => select(index));
+        item.append(button);
+        list.append(item);
+      });
+      document.querySelector('#empty-events').hidden = records.length > 0;
+      const last = records.at(-1);
+      const seconds = last && Number.isFinite(Number(last.t)) ? Number(last.t).toFixed(3) : '0.000';
+      document.querySelector('#count').textContent = `${records.length} events, ${seconds} s`;
+      const finalRecord = [...records].reverse().find(record => record.kind === 'final');
+      document.querySelector('#answer').textContent = finalRecord ? (finalRecord.text ?? '') : 'No final answer';
+      const problem = document.querySelector('#problems');
+      problem.textContent = bad ? `${bad} ${bad === 1 ? 'line' : 'lines'} could not be read.` : '';
+      problem.hidden = bad === 0;
+      selected = -1;
+      detail.textContent = 'Open a trace file from the runs folder.';
+      position.textContent = `0 / ${records.length}`;
+      previous.disabled = true;
+      next.disabled = true;
+      if (records.length) select(0);
+    });
+
+    previous.addEventListener('click', () => select(selected - 1));
+    next.addEventListener('click', () => select(selected + 1));
+    document.addEventListener('keydown', event => {
+      if (event.ctrlKey || event.altKey || event.metaKey || document.activeElement === fileInput || document.activeElement === theme) return;
+      const step = ['ArrowDown', 'ArrowRight'].includes(event.key) ? 1 :
+        ['ArrowUp', 'ArrowLeft'].includes(event.key) ? -1 : 0;
+      if (step && selected + step >= 0 && selected + step < records.length) {
+        select(selected + step);
+        event.preventDefault();
+      }
+    });
+    // Start with the system theme and let the learner switch it.
+    function setTheme(dark) {
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      theme.setAttribute('aria-pressed', String(dark));
+    }
+    setTheme(matchMedia('(prefers-color-scheme: dark)').matches);
+    theme.addEventListener('click', () => setTheme(document.documentElement.dataset.theme !== 'dark'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+[
+  {"text": "{\"term\": \"tool calling\", \"definition\": \"Using a tool.\"}"},
+  {"text": "{\"term\": \"tool calling\", \"meaning\": \"The model asks the program to run a tool.\", \"example\": \"The model asks for multiply with 17 and 23.\"}"}
+]
