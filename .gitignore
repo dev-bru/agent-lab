@@ -5,3 +5,10 @@ agent-lab.toml
 sandbox/
 runs/
 .agent-lab/
+.tmp/
+.pytest-*/
+.codex-tmp/
+.env
+.env.*
+node_modules/
+.harness/
